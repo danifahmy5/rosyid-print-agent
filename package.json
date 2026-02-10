@@ -1,0 +1,61 @@
+{
+  "name": "rosyid-print-agent",
+  "version": "1.0.0",
+  "description": "RosyidPOS Local Print Agent - Windows Service for silent POS printing",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node src/index.js --dev",
+    "install-service": "node scripts/install-service.js",
+    "uninstall-service": "node scripts/uninstall-service.js",
+    "build": "pkg . --targets node18-win-x64 --output dist/RosyidPrintAgent.exe",
+    "test": "jest",
+    "lint": "eslint src/"
+  },
+  "bin": "src/index.js",
+  "pkg": {
+    "scripts": "src/**/*.js",
+    "assets": [
+      "dashboard/**/*",
+      "config/**/*"
+    ],
+    "targets": [
+      "node18-win-x64"
+    ],
+    "outputPath": "dist"
+  },
+  "keywords": [
+    "pos",
+    "print",
+    "escpos",
+    "thermal-printer",
+    "windows-service"
+  ],
+  "author": "RosyidPOS",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "better-sqlite3": "^9.4.3",
+    "winston": "^3.11.0",
+    "winston-daily-rotate-file": "^4.7.1",
+    "socket.io": "^4.7.4",
+    "escpos": "^3.0.0-alpha.6",
+    "escpos-usb": "^3.0.0-alpha.4",
+    "escpos-network": "^3.0.0-alpha.4",
+    "pdf-to-printer": "^5.3.0",
+    "node-windows": "^1.0.0-beta.8",
+    "uuid": "^9.0.1",
+    "axios": "^1.6.7",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "eslint": "^8.56.0",
+    "pkg": "^5.8.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

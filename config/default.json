@@ -1,0 +1,67 @@
+{
+  "agent": {
+    "name": "RosyidPOS Print Agent",
+    "port": 7331,
+    "host": "127.0.0.1"
+  },
+  "security": {
+    "api_key": "change-this-secret-key",
+    "allowed_origins": ["http://localhost", "http://127.0.0.1"],
+    "allowed_ips": ["127.0.0.1"],
+    "enable_ip_check": false
+  },
+  "printers": {
+    "mappings": {
+      "cashier": "",
+      "kitchen": "",
+      "bar": "",
+      "invoice": ""
+    },
+    "routing": {
+      "food": "kitchen",
+      "drinks": "bar",
+      "default": "cashier"
+    }
+  },
+  "queue": {
+    "max_attempts": 3,
+    "retry_delays": [5000, 15000, 60000],
+    "idempotency_ttl_hours": 24
+  },
+  "rate_limits": {
+    "print": { "max": 60, "window_ms": 60000 },
+    "health": { "max": 120, "window_ms": 60000 },
+    "default": { "max": 30, "window_ms": 60000 }
+  },
+  "target_rate_limits": {
+    "cashier": { "max": 30, "window_ms": 60000 },
+    "kitchen": { "max": 60, "window_ms": 60000 },
+    "bar": { "max": 60, "window_ms": 60000 },
+    "invoice": { "max": 20, "window_ms": 60000 }
+  },
+  "update": {
+    "enabled": true,
+    "check_interval_hours": 6,
+    "server_url": "",
+    "health_check_delay_ms": 60000
+  },
+  "sync": {
+    "enabled": false,
+    "server_url": "",
+    "interval_minutes": 30
+  },
+  "logging": {
+    "level": "info",
+    "max_files": "14d",
+    "max_size": "20m"
+  },
+  "safe_mode": {
+    "crash_threshold": 3,
+    "crash_window_minutes": 10,
+    "auto_exit_hours": 1
+  },
+  "monitoring": {
+    "status_poll_interval_ms": 30000,
+    "printer_timeout_ms": 300000
+  }
+}

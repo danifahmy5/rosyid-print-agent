@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RosyidPOS Print Agent</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">
+                    <span class="logo-icon">🖨️</span>
+                    RosyidPOS Print Agent
+                </h1>
+                <div class="header-status">
+                    <span id="status-badge" class="badge badge-loading">Connecting...</span>
+                    <span id="version" class="version"></span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Status Cards -->
+            <section class="status-cards">
+                <div class="card status-card">
+                    <div class="card-icon">⏱️</div>
+                    <div class="card-content">
+                        <div class="card-value" id="uptime">--</div>
+                        <div class="card-label">Uptime</div>
+                    </div>
+                </div>
+                <div class="card status-card">
+                    <div class="card-icon">📋</div>
+                    <div class="card-content">
+                        <div class="card-value" id="queue-pending">0</div>
+                        <div class="card-label">Pending Jobs</div>
+                    </div>
+                </div>
+                <div class="card status-card">
+                    <div class="card-icon">⚠️</div>
+                    <div class="card-content">
+                        <div class="card-value" id="dlq-count">0</div>
+                        <div class="card-label">Failed Jobs (DLQ)</div>
+                    </div>
+                </div>
+                <div class="card status-card">
+                    <div class="card-icon">🖨️</div>
+                    <div class="card-content">
+                        <div class="card-value" id="printer-count">0</div>
+                        <div class="card-label">Printers</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab active" data-tab="printers">Printers</button>
+                <button class="tab" data-tab="queue">Queue</button>
+                <button class="tab" data-tab="dlq">Dead Letter Queue</button>
+                <button class="tab" data-tab="logs">Logs</button>
+                <button class="tab" data-tab="config">Config</button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Printers Tab -->
+                <div id="printers-tab" class="tab-pane active">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Available Printers</h2>
+                            <button class="btn btn-sm" onclick="refreshPrinters()">🔄 Refresh</button>
+                        </div>
+                        <div class="panel-body">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Logical</th>
+                                        <th>Status</th>
+                                        <th>Last Success</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="printers-list">
+                                    <tr><td colspan="5" class="text-center">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Queue Tab -->
+                <div id="queue-tab" class="tab-pane">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Print Queue</h2>
+                            <div class="queue-stats">
+                                <span class="stat">Pending: <strong id="stat-pending">0</strong></span>
+                                <span class="stat">Processing: <strong id="stat-processing">0</strong></span>
+                                <span class="stat">Completed (24h): <strong id="stat-completed">0</strong></span>
+                            </div>
+                        </div>
+                        <div class="panel-body">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Target</th>
+                                        <th>Type</th>
+                                        <th>Status</th>
+                                        <th>Attempts</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="queue-list">
+                                    <tr><td colspan="7" class="text-center">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DLQ Tab -->
+                <div id="dlq-tab" class="tab-pane">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Dead Letter Queue</h2>
+                            <p class="text-muted">Jobs that failed after max retries</p>
+                        </div>
+                        <div class="panel-body">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Original ID</th>
+                                        <th>Target</th>
+                                        <th>Failure Reason</th>
+                                        <th>Attempts</th>
+                                        <th>Moved At</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dlq-list">
+                                    <tr><td colspan="6" class="text-center">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Logs Tab -->
+                <div id="logs-tab" class="tab-pane">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Recent Logs</h2>
+                            <div class="log-filters">
+                                <select id="log-level" onchange="filterLogs()">
+                                    <option value="">All Levels</option>
+                                    <option value="error">Error</option>
+                                    <option value="warn">Warning</option>
+                                    <option value="info">Info</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="panel-body">
+                            <div id="logs-viewer" class="logs-viewer">
+                                <div class="log-placeholder">Loading logs...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Config Tab -->
+                <div id="config-tab" class="tab-pane">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Configuration</h2>
+                            <div>
+                                <button class="btn btn-sm" onclick="syncConfig()">🔄 Sync from Server</button>
+                            </div>
+                        </div>
+                        <div class="panel-body">
+                            <div id="config-viewer" class="config-viewer">
+                                <pre id="config-json"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Safe Mode Banner -->
+        <div id="safe-mode-banner" class="safe-mode-banner hidden">
+            <span>⚠️ Running in Safe Mode - Some features disabled</span>
+            <button class="btn btn-sm" onclick="exitSafeMode()">Exit Safe Mode</button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <span>RosyidPOS Print Agent</span>
+            <span id="connection-status">●  Connected</span>
+        </footer>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
