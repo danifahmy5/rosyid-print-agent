@@ -31,6 +31,17 @@ app.use(helmet({
 
 // CORS configuration
 app.use((req, res, next) => {
+  // Allow all origins for the health check endpoint
+  if (req.path === '/health') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(200);
+    }
+    return next();
+  }
+
   const services = req.app.get('services');
   const config = services?.config;
   
@@ -53,13 +64,18 @@ app.use((req, res, next) => {
       const isLocal = origin && (
         origin.startsWith('http://localhost') || 
         origin.startsWith('http://127.0.0.1') ||
+        origin.startsWith('http://[::1]') ||
         origin.startsWith('http://localhost:') || 
-        origin.startsWith('http://127.0.0.1:')
+        origin.startsWith('http://127.0.0.1:') ||
+        origin.startsWith('http://[::1]:') ||
+        origin.startsWith('http://192.168.') ||
+        origin.startsWith('http://10.') ||
+        origin.startsWith('http://172.')
       );
       if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin) || isLocal) {
         callback(null, true);
       } else {
-        callback(new Error('Not allowed by CORS'));
+        callback(null, false); // Do not throw Error to prevent 500 Internal Server Error
       }
     },
     methods: ['GET', 'POST', 'DELETE'],
