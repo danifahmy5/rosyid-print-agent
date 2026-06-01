@@ -12,15 +12,14 @@
   },
   "printers": {
     "mappings": {
-      "cashier": "",
-      "kitchen": "",
-      "bar": "",
-      "invoice": ""
+      "e_tiket": "",
+      "antrian": "",
+      "resep_penjualan": ""
     },
     "routing": {
-      "food": "kitchen",
-      "drinks": "bar",
-      "default": "cashier"
+      "food": "e_tiket",
+      "drinks": "e_tiket",
+      "default": "resep_penjualan"
     }
   },
   "queue": {
