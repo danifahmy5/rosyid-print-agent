@@ -76,3 +76,7 @@ test-results/
 *.bak
 *.orig
 *.rej
+
+# PHP Testing Directory
+test-php/vendor/
+test-php/test_logs.json

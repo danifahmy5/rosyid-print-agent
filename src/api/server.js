@@ -7,7 +7,6 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
 const path = require('path');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
@@ -35,11 +34,29 @@ app.use((req, res, next) => {
   const services = req.app.get('services');
   const config = services?.config;
   
-  const allowedOrigins = config?.get('security.allowed_origins', ['*']) || ['*'];
+  const host = config?.get('agent.host', '127.0.0.1') || '127.0.0.1';
+  const port = config?.get('agent.port', 7331) || 7331;
+  
+  const defaultAllowed = [
+    `http://localhost:${port}`,
+    `http://127.0.0.1:${port}`,
+    `http://${host}:${port}`,
+    'http://localhost',
+    'http://127.0.0.1'
+  ];
+  
+  const configuredOrigins = config?.get('security.allowed_origins', ['*']) || ['*'];
+  const allowedOrigins = [...new Set([...configuredOrigins, ...defaultAllowed])];
   
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+      const isLocal = origin && (
+        origin.startsWith('http://localhost') || 
+        origin.startsWith('http://127.0.0.1') ||
+        origin.startsWith('http://localhost:') || 
+        origin.startsWith('http://127.0.0.1:')
+      );
+      if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin) || isLocal) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
@@ -108,25 +125,34 @@ const checkIP = (req, res, next) => {
   next();
 };
 
-// Rate limiting factory
-const createRateLimiter = (type) => {
-  return (req, res, next) => {
-    const services = req.app.get('services');
-    const config = services?.config;
-    
-    const limits = config?.get(`rate_limits.${type}`) || { max: 30, window_ms: 60000 };
-    
-    rateLimit({
-      windowMs: limits.window_ms,
-      max: limits.max,
-      message: { 
-        error: 'Too Many Requests', 
-        message: `Rate limit exceeded. Try again later.` 
-      },
-      standardHeaders: true,
-      legacyHeaders: false
-    })(req, res, next);
-  };
+// Simple in-memory rate limiter for health endpoint to avoid express-rate-limit validation errors
+const healthRateLimiter = {
+  requests: [],
+  max: 120,
+  windowMs: 60000
+};
+
+const healthLimiterMiddleware = (req, res, next) => {
+  const services = req.app.get('services');
+  const config = services?.config;
+  
+  const limits = config?.get('rate_limits.health') || { max: 120, window_ms: 60000 };
+  const now = Date.now();
+  
+  healthRateLimiter.max = limits.max;
+  healthRateLimiter.windowMs = limits.window_ms;
+  
+  healthRateLimiter.requests = healthRateLimiter.requests.filter(t => now - t < healthRateLimiter.windowMs);
+  
+  if (healthRateLimiter.requests.length >= healthRateLimiter.max) {
+    return res.status(429).json({ 
+      error: 'Too Many Requests', 
+      message: 'Rate limit exceeded. Try again later.' 
+    });
+  }
+  
+  healthRateLimiter.requests.push(now);
+  next();
 };
 
 // Apply global middleware
@@ -137,7 +163,7 @@ app.use(authenticate);
 app.use('/dashboard', express.static(path.join(__dirname, '../../dashboard')));
 
 // Health endpoint (unversioned, always available)
-app.get('/health', createRateLimiter('health'), (req, res) => {
+app.get('/health', healthLimiterMiddleware, (req, res) => {
   const services = req.app.get('services');
   const packageJson = require('../../package.json');
   

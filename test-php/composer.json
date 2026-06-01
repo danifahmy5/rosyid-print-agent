@@ -1,0 +1,13 @@
+{
+    "name": "rosyid-print-agent/test-php",
+    "description": "Test PHP print script with HTML-to-PDF generation for RosyidPOS Print Agent",
+    "type": "project",
+    "require": {
+        "dompdf/dompdf": "^2.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "kylekatarnls/update-helper": true
+        }
+    }
+}

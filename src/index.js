@@ -5,7 +5,7 @@
  */
 
 const path = require('path');
-const { app } = require('./api/server');
+const { app, httpServer, io } = require('./api/server');
 const { ConfigManager } = require('./services/ConfigManager');
 const { LoggingService } = require('./services/LoggingService');
 const { DatabaseManager } = require('./database/connection');
@@ -86,6 +86,7 @@ class PrintAgentApp {
         this.services.config,
         this.services.logger.getLogger('monitoring')
       );
+      this.services.monitoring.setSocketIO(io);
 
       // Initialize update manager (if not in safe mode)
       if (!this.services.safeMode.isInSafeMode()) {
@@ -103,7 +104,7 @@ class PrintAgentApp {
       // Pass services to Express app
       app.set('services', this.services);
       
-      this.server = app.listen(port, host, () => {
+      this.server = httpServer.listen(port, host, () => {
         this.logger.info(`Print Agent listening on http://${host}:${port}`);
         this.logger.info(`Dashboard available at http://${host}:${port}/dashboard`);
         

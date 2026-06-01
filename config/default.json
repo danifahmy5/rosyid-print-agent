@@ -6,7 +6,7 @@
   },
   "security": {
     "api_key": "change-this-secret-key",
-    "allowed_origins": ["http://localhost", "http://127.0.0.1"],
+    "allowed_origins": ["http://localhost", "http://127.0.0.1", "http://localhost:7331", "http://127.0.0.1:7331"],
     "allowed_ips": ["127.0.0.1"],
     "enable_ip_check": false
   },

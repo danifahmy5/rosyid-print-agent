@@ -1,75 +1,75 @@
 # RosyidPOS Print Agent
 
-A production-ready Windows Local Print Agent for the RosyidPOS point-of-sale system. Enables silent printing to multiple thermal and regular printers without browser print dialogs.
+Sebuah Windows Local Print Agent yang siap digunakan untuk produksi (production-ready) pada sistem point-of-sale RosyidPOS. Memungkinkan pencetakan senyap (silent printing) ke beberapa printer thermal dan printer biasa tanpa dialog cetak browser.
 
-## Features
+## Fitur
 
-- 🖨️ **Silent Printing** - Print directly from web POS without dialogs
-- 🔄 **Multi-Printer Support** - Route prints to cashier, kitchen, bar, invoice printers
-- 📋 **Print Queue** - Persistent queue with retry logic
-- 💀 **Dead Letter Queue** - Failed prints never lost
-- 🔒 **Secure** - API key authentication, rate limiting
-- 🚀 **Auto-Start** - Runs as Windows Service
-- 🔧 **Auto-Update** - Safe atomic updates with rollback
-- 📊 **Dashboard** - Real-time monitoring UI
-- ⚡ **ESC/POS** - Full thermal printer command support
+- 🖨️ **Pencetakan Senyap (Silent Printing)** - Mencetak langsung dari POS web tanpa dialog
+- 🔄 **Dukungan Multi-Printer** - Mengarahkan cetakan ke printer kasir, dapur, bar, dan faktur
+- 📋 **Antrean Cetak (Print Queue)** - Antrean persisten dengan logika percobaan ulang (retry)
+- 💀 **Dead Letter Queue (DLQ)** - Cetakan yang gagal tidak akan pernah hilang
+- 🔒 **Aman** - Otentikasi kunci API (API key), pembatasan laju (rate limiting)
+- 🚀 **Mulai Otomatis (Auto-Start)** - Berjalan sebagai Layanan Windows (Windows Service)
+- 🔧 **Pembaruan Otomatis (Auto-Update)** - Pembaruan atomik yang aman dengan fitur pengembalian (rollback)
+- 📊 **Dasbor (Dashboard)** - UI pemantauan real-time
+- ⚡ **ESC/POS** - Dukungan perintah printer thermal penuh
 
-## Quick Start
+## Memulai Cepat (Quick Start)
 
-### Requirements
+### Persyaratan
 
 - Windows 10/11
-- Node.js 18+ (for development)
+- Node.js 18+ (untuk pengembangan)
 
-### Installation from Source
+### Instalasi dari Sumber (Source Code)
 
 ```bash
-# Clone and install
+# Kloning dan instal
 git clone <repo>
 cd rosyid-print-agent
 npm install
 
-# Start in development mode
+# Jalankan dalam mode pengembangan
 npm start
 
-# Open dashboard
+# Buka dasbor
 start http://127.0.0.1:7331/dashboard
 ```
 
-### Install as Windows Service
+### Instal sebagai Layanan Windows (Windows Service)
 
 ```bash
-# Run as Administrator
+# Jalankan sebagai Administrator
 npm run install-service
 ```
 
-The service will:
-- Auto-start on Windows boot
-- Auto-restart on crash
-- Run in background
+Layanan akan:
+- Mulai otomatis saat Windows booting
+- Mulai ulang otomatis jika terjadi crash
+- Berjalan di latar belakang (background)
 
-### Build Windows Executable
+### Build Executable Windows
 
 ```bash
-# Build standalone .exe
+# Build .exe mandiri
 npm run build
 
 # Output: dist/RosyidPrintAgent.exe
 ```
 
-### Create Installer
+### Membuat Installer
 
-1. Install [Inno Setup](https://jrsoftware.org/isinfo.php)
-2. Open `installer.iss` in Inno Setup Compiler
+1. Instal [Inno Setup](https://jrsoftware.org/isinfo.php)
+2. Buka `installer.iss` di Inno Setup Compiler
 3. Build installer
 
-## Configuration
+## Konfigurasi
 
-Configuration file: `data/config.json` (or `config/default.json` for defaults)
+File konfigurasi: `data/config.json` (atau `config/default.json` untuk nilai bawaan)
 
-### Printer Mappings
+### Pemetaan Printer (Printer Mappings)
 
-Map logical printer names to physical Windows printer names:
+Petakan nama printer logis ke nama printer fisik Windows:
 
 ```json
 {
@@ -89,12 +89,12 @@ Map logical printer names to physical Windows printer names:
 }
 ```
 
-### Security
+### Keamanan (Security)
 
 ```json
 {
   "security": {
-    "api_key": "your-secret-key",
+    "api_key": "kunci-rahasia-anda",
     "allowed_origins": ["http://pos.example.com"],
     "allowed_ips": ["127.0.0.1", "192.168.1.*"],
     "enable_ip_check": false
@@ -102,38 +102,38 @@ Map logical printer names to physical Windows printer names:
 }
 ```
 
-## API Reference
+## Referensi API (API Reference)
 
-Base URL: `http://127.0.0.1:7331/api/v1`
+URL Dasar: `http://127.0.0.1:7331/api/v1`
 
-### Endpoints
+### Endpoint
 
-| Method | Endpoint | Description |
+| Metode | Endpoint | Deskripsi |
 |--------|----------|-------------|
-| GET | `/health` | Agent health and version |
-| POST | `/print` | Submit print job |
-| GET | `/printers` | List available printers |
-| GET | `/queue` | Active print queue |
-| DELETE | `/queue/:id` | Cancel print job |
-| GET | `/status` | Printer status summary |
+| GET | `/health` | Kesehatan dan versi agen |
+| POST | `/print` | Kirim pekerjaan cetak (print job) |
+| GET | `/printers` | Daftar printer yang tersedia |
+| GET | `/queue` | Antrean cetak yang aktif |
+| DELETE | `/queue/:id` | Batalkan pekerjaan cetak |
+| GET | `/status` | Ringkasan status printer |
 | GET | `/dlq` | Dead letter queue |
-| POST | `/dlq/:id/retry` | Retry DLQ job |
-| DELETE | `/dlq/:id` | Discard DLQ job |
-| GET | `/config` | Current configuration |
-| POST | `/config/sync` | Sync from remote |
+| POST | `/dlq/:id/retry` | Coba lagi pekerjaan DLQ |
+| DELETE | `/dlq/:id` | Buang pekerjaan DLQ |
+| GET | `/config` | Konfigurasi saat ini |
+| POST | `/config/sync` | Sinkronisasi dari jarak jauh (remote) |
 
-### Print Job Request
+### Permintaan Pekerjaan Cetak (Print Job Request)
 
 ```http
 POST /api/v1/print
 Content-Type: application/json
-X-RosyidPOS-Key: your-api-key
+X-RosyidPOS-Key: kunci-api-anda
 X-Idempotency-Key: order-12345-receipt-1
 
 {
   "target": "cashier",
   "type": "escpos",
-  "content": "base64-encoded-data",
+  "content": "data-terenkode-base64",
   "metadata": {
     "order_id": "ORD-12345",
     "category": "food"
@@ -141,7 +141,7 @@ X-Idempotency-Key: order-12345-receipt-1
 }
 ```
 
-### Response
+### Respons
 
 ```json
 {
@@ -152,28 +152,28 @@ X-Idempotency-Key: order-12345-receipt-1
 }
 ```
 
-## Dashboard
+## Dasbor (Dashboard)
 
-Access the monitoring dashboard at:
+Akses dasbor pemantauan di:
 
 ```
 http://127.0.0.1:7331/dashboard
 ```
 
-Features:
-- Real-time printer status
-- Queue management
-- DLQ review and retry
-- Log viewer
-- Configuration viewer
+Fitur:
+- Status printer real-time
+- Manajemen antrean
+- Peninjauan dan uji coba ulang DLQ
+- Penampil log (log viewer)
+- Penampil konfigurasi (config viewer)
 
-## Integration
+## Integrasi
 
-See documentation:
-- [Laravel Integration Guide](docs/laravel-integration.md)
-- [Vue Helper Example](docs/vue-helper.md)
+Lihat dokumentasi:
+- [Panduan Integrasi Laravel](docs/laravel-integration.md)
+- [Contoh Pembantu Vue](docs/vue-helper.md)
 
-## Architecture
+## Arsitektur
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -196,29 +196,29 @@ See documentation:
 └─────────────────────────────────────────────────────────┘
 ```
 
-## Troubleshooting
+## Pemecahan Masalah (Troubleshooting)
 
-### Service won't start
-1. Check Windows Event Viewer for errors
-2. Try running manually: `node src/index.js`
-3. Check logs in `data/logs/`
+### Layanan tidak dapat dijalankan (Service won't start)
+1. Periksa Windows Event Viewer untuk melihat kesalahan
+2. Coba jalankan secara manual: `node src/index.js`
+3. Periksa log di `data/logs/`
 
-### Printer not found
-1. Open dashboard, check Printers tab
-2. Click Refresh
-3. Verify printer name matches Windows exactly
+### Printer tidak ditemukan (Printer not found)
+1. Buka dasbor, pilih tab Printer
+2. Klik Refresh (Segarkan)
+3. Pastikan nama printer sama persis dengan yang ada di Windows
 
-### Prints failing
-1. Check DLQ in dashboard
-2. Review error message
-3. Test printer with Test Print button
+### Pencetakan gagal (Prints failing)
+1. Periksa DLQ di dasbor
+2. Tinjau pesan kesalahan
+3. Uji printer dengan tombol Test Print (Uji Cetak)
 
-### Safe Mode
-If agent enters safe mode after crashes:
-1. Check logs for crash cause
-2. Fix issue
-3. Restart service to exit safe mode
+### Mode Aman (Safe Mode)
+Jika agen memasuki mode aman setelah crash:
+1. Periksa log untuk mencari penyebab crash
+2. Perbaiki masalah tersebut
+3. Mulai ulang layanan untuk keluar dari mode aman
 
-## License
+## Lisensi (License)
 
-MIT License - See LICENSE file
+Lisensi MIT - Lihat file LICENSE

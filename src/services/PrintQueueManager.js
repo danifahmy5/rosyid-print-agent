@@ -205,17 +205,38 @@ class PrintQueueManager {
         WHERE id = ?
       `).run(job.id);
 
-      // Resolve printer
+       // Resolve printer
       const physicalPrinter = this.printerService.resolveLogicalName(job.target);
 
-      // Prepare content
-      let content = job.content;
-      if (job.type === 'base64') {
-        content = Buffer.from(content, 'base64');
-      }
+      if (job.type === 'pdf') {
+        const fs = require('fs');
+        const path = require('path');
+        const os = require('os');
+        const tempPdf = path.join(os.tmpdir(), `print_${Date.now()}.pdf`);
+        
+        // Write the base64 content to temporary PDF file
+        const pdfBuffer = Buffer.from(job.content, 'base64');
+        fs.writeFileSync(tempPdf, pdfBuffer);
+        
+        try {
+          await this.printerService.printPdf(physicalPrinter, tempPdf);
+        } finally {
+          try {
+            fs.unlinkSync(tempPdf);
+          } catch (e) {
+            // Ignore cleanup errors
+          }
+        }
+      } else {
+        // Prepare content for raw/text/escpos
+        let content = job.content;
+        if (job.type === 'base64') {
+          content = Buffer.from(content, 'base64');
+        }
 
-      // Attempt print
-      await this.printerService.printRaw(physicalPrinter, content);
+        // Attempt print
+        await this.printerService.printRaw(physicalPrinter, content);
+      }
 
       // Mark completed
       this.db.prepare(`
