@@ -78,7 +78,7 @@ app.use((req, res, next) => {
         callback(null, false); // Do not throw Error to prevent 500 Internal Server Error
       }
     },
-    methods: ['GET', 'POST', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'X-RosyidPOS-Key', 'X-Idempotency-Key']
   })(req, res, next);
 });
