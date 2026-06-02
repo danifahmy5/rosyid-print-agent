@@ -16,8 +16,7 @@ const svc = new Service({
   nodeOptions: [
     '--max-old-space-size=256'
   ],
-  workingDirectory: path.join(__dirname, '..'),
-  allowServiceLogon: true
+  workingDirectory: path.join(__dirname, '..')
 });
 
 // Service event handlers

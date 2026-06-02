@@ -202,6 +202,7 @@ Lihat dokumentasi:
 1. Periksa Windows Event Viewer untuk melihat kesalahan
 2. Coba jalankan secara manual: `node src/index.js`
 3. Periksa log di `data/logs/`
+4. Jika menemui error `LookupAccountName failed: 1332` atau `Failed to set logon as a service right`, pastikan opsi `allowServiceLogon` di file `scripts/install-service.js` dinonaktifkan atau dihapus agar service berjalan dengan akun default `LocalSystem` tanpa hambatan.
 
 ### Printer tidak ditemukan (Printer not found)
 1. Buka dasbor, pilih tab Printer
