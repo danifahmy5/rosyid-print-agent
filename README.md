@@ -36,17 +36,36 @@ npm start
 start http://127.0.0.1:7331/dashboard
 ```
 
-### Instal sebagai Layanan Windows (Windows Service)
+### Mengelola Layanan Windows (Windows Service)
 
+Layanan ini dirancang untuk berjalan secara otomatis di latar belakang. Anda dapat menginstal, mencopot (uninstall), atau memulai ulang (restart) layanan menggunakan perintah berikut (pastikan terminal dijalankan sebagai **Administrator**):
+
+#### Menginstal Layanan
 ```bash
-# Jalankan sebagai Administrator
 npm run install-service
 ```
-
 Layanan akan:
 - Mulai otomatis saat Windows booting
 - Mulai ulang otomatis jika terjadi crash
 - Berjalan di latar belakang (background)
+
+#### Mencopot (Uninstall) Layanan
+```bash
+npm run uninstall-service
+```
+
+#### Memulai Ulang (Restart) Layanan
+* **PowerShell:**
+  ```powershell
+  Restart-Service -Name "RosyidPOS Print Agent"
+  ```
+* **Command Prompt (CMD):**
+  ```cmd
+  net stop "RosyidPOS Print Agent"
+  net start "RosyidPOS Print Agent"
+  ```
+* **GUI Services:**
+  Buka `services.msc` dari menu Run (`Win + R`), cari **RosyidPOS Print Agent**, lalu pilih **Restart**.
 
 ### Build Executable Windows
 
