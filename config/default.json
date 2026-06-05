@@ -14,7 +14,8 @@
     "mappings": {
       "e_tiket": "",
       "antrian": "",
-      "resep_penjualan": ""
+      "resep_penjualan": "",
+      "cetak_resep": ""
     },
     "routing": {
       "food": "e_tiket",
