@@ -31,17 +31,45 @@ class PrinterService {
   async detectPrinters() {
     try {
       // Use Windows PowerShell to get printers
-      const { stdout } = await execPromise(
-        'powershell -Command "Get-Printer | Select-Object Name, DriverName, PortName, PrinterStatus | ConvertTo-Json"',
-        { timeout: 10000 }
-      );
+      let stdout;
+      let usingFallback = false;
+      try {
+        const result = await execPromise(
+          'powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-Printer | Select-Object Name, DriverName, PortName, PrinterStatus | ConvertTo-Json"',
+          { timeout: 10000 }
+        );
+        stdout = result.stdout;
+      } catch (psError) {
+        this.logger.warn('PowerShell Get-Printer failed, trying InstalledPrinters fallback...', { error: psError.message });
+        try {
+          const result = await execPromise(
+            'powershell -NoProfile -ExecutionPolicy Bypass -Command "Add-Type -AssemblyName System.Drawing; [System.Drawing.Printing.PrinterSettings]::InstalledPrinters | ConvertTo-Json"',
+            { timeout: 10000 }
+          );
+          stdout = result.stdout;
+          usingFallback = true;
+        } catch (fallbackError) {
+          this.logger.error('Fallback printer detection also failed', { error: fallbackError.message });
+          throw psError; // Throw original error to trigger main catch block
+        }
+      }
 
       let printerList = [];
       try {
         const parsed = JSON.parse(stdout);
-        printerList = Array.isArray(parsed) ? parsed : [parsed];
+        const list = Array.isArray(parsed) ? parsed : [parsed];
+        if (usingFallback) {
+          printerList = list.map(name => ({
+            Name: name,
+            DriverName: 'Unknown',
+            PortName: 'Unknown',
+            PrinterStatus: 0
+          }));
+        } else {
+          printerList = list;
+        }
       } catch (e) {
-        this.logger.warn('Could not parse printer list, using fallback');
+        this.logger.warn('Could not parse printer list, using empty list');
         printerList = [];
       }
 
@@ -286,12 +314,42 @@ exit 0
    */
   async printPdf(printerName, pdfPath) {
     const pdfToPrinter = require('pdf-to-printer');
+    const { exec } = require('child_process');
+    const util = require('util');
+    const execPromise = util.promisify(exec);
+
+    const timeoutMs = this.config.get('monitoring.printer_timeout_ms', 30000);
+
+    let timeoutId;
+    const timeoutPromise = new Promise((_, reject) => {
+      timeoutId = setTimeout(async () => {
+        this.logger.warn(`PDF printing timed out after ${timeoutMs}ms. Attempting to kill SumatraPDF process...`);
+        try {
+          // Kill the SumatraPDF process running under our service account
+          await execPromise('taskkill /F /IM SumatraPDF*');
+          this.logger.info('Killed hanging SumatraPDF process');
+        } catch (killError) {
+          this.logger.error('Failed to kill SumatraPDF process', { error: killError.message });
+        }
+        reject(new Error(`PDF printing timed out after ${timeoutMs}ms`));
+      }, timeoutMs);
+    });
     
     try {
-      await pdfToPrinter.print(pdfPath, { printer: printerName });
+      if (!this.printerExists(printerName)) {
+        throw new Error(`Printer not found: ${printerName}`);
+      }
+
+      await Promise.race([
+        pdfToPrinter.print(pdfPath, { printer: printerName }),
+        timeoutPromise
+      ]);
+
+      clearTimeout(timeoutId);
       this.recordPrintResult(printerName, true);
       return { success: true, printer: printerName };
     } catch (error) {
+      clearTimeout(timeoutId);
       this.recordPrintResult(printerName, false, error.message);
       throw error;
     }
